@@ -20,8 +20,8 @@ public:
     zeichenFeld(QWidget *parent = 0);
     ~zeichenFeld();
 
-    void start(void) { timer->start(500); test=1; };
-    void stop(void) { timer->stop(); test=0; };
+    void start(void) { timer->start(2000); startgame=1; };
+    void stop(void) { timer->stop(); startgame=0; };
 
     void serialize(QFile &file);
     void deserialize(QFile &file);
@@ -33,7 +33,7 @@ private:
 
     int x;
     int y;
-    int test;
+    int startgame;
     int phase;
 
 protected:

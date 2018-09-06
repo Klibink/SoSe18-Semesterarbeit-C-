@@ -36,9 +36,9 @@ meinWidget::meinWidget(QWidget *parent)
     meinZeichenFeld = new zeichenFeld;
 
     QGridLayout *gridLayout = new QGridLayout;
-    gridLayout->addWidget(quit, 0, 0);
-    gridLayout->addWidget(startbutton, 1, 0);
-    gridLayout->addWidget(stopbutton, 2, 0);
+    gridLayout->addWidget(quit, 0, 1);
+    gridLayout->addWidget(startbutton, 0, 0);
+    gridLayout->addWidget(stopbutton, 1, 0);
     gridLayout->addWidget(saver, 3, 0);
     gridLayout->addWidget(loader, 4, 0);
     gridLayout->addWidget(meinZeichenFeld, 1, 1, 2, 1);

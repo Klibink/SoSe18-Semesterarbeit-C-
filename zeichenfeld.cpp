@@ -13,10 +13,10 @@ zeichenFeld::zeichenFeld(QWidget *parent)
     setPalette(QPalette(QColor(250, 250, 200)));
     setAutoFillBackground(true);
     //setMaximumSize(1024,768);
-    setMinimumSize(800,600);
+    setFixedSize(800,600);
     x=300;
     y=100;
-    test=0;
+    startgame=0;
     phase=0;
     setFocusPolicy(Qt::StrongFocus);
 
@@ -39,7 +39,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
     painter.begin( this );
 
     painter.setBrush(Qt::red);
-    painter.drawRect(x,500,40,40);
+    painter.drawRect(x,560,40,40);
 
 
     if(blocks.size()>1){
@@ -60,41 +60,64 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
 
     //painter.drawRect(100,y,30,30);
 
-    if(test){
+    if(startgame){
+        phase=rand() % 4;
         switch(phase)
         {
         case 0:
-
+            if(rand()% 100 + 1 <33){
             struct blockinfo *block;
             block = new struct blockinfo;
             block->posX=rand() % 800 + 20;
-            block->posY=100;
+            block->posY=0;
             block->speed=rand() % 30 + 10;
             block->color=Qt::white;
             blocks.push_back(block);
-
-
-            if(blocks.size()>20)phase++;
-
+        }
+            //if(blocks.size()>20)phase++;
 
             break;
 
         case 1:
+            if(rand()% 100 + 1 <33){
+            struct blockinfo *block;
+            block = new struct blockinfo;
+            block->posX=rand() % 800 + 20;
+            block->posY=0;
+            block->speed=rand() % 30 + 10;
+            block->color=Qt::blue;
+            blocks.push_back(block);
+        }
 
             break;
 
         case 2:
+            if(rand()% 100 + 1 <33){
+            struct blockinfo *block;
+            block = new struct blockinfo;
+            block->posX=rand() % 800 + 20;
+            block->posY=0;
+            block->speed=rand() % 30 + 10;
+            block->color=Qt::black;
+            blocks.push_back(block);
+        }
 
             break;
 
         case 3:
-
+            if(rand()% 100 + 1 <33){
+            struct blockinfo *block;
+            block = new struct blockinfo;
+            block->posX=rand() % 800 + 20;
+            block->posY=0;
+            block->speed=rand() % 30 + 10;
+            block->color=Qt::yellow;
+            blocks.push_back(block);
+        }
 
             break;
         }
 
-
-        //y+=10;
     }
 
     painter.end();
@@ -121,12 +144,13 @@ void zeichenFeld::keyPressEvent( QKeyEvent *event)
     switch(event->key())
     {
     case Qt::Key_Left:
-        x=x-25; 
+        if(x>0)x=x-25;
+
         break;
         //update();
 
     case Qt::Key_Right:
-        x=x+25;
+        if(x+40<800)x=x+25;
         break;
         //update();
 
