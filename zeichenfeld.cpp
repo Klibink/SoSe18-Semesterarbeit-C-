@@ -18,6 +18,7 @@ zeichenFeld::zeichenFeld(QWidget *parent)
     y=100;
     startgame=0;
     phase=0;
+    score=0;
     setFocusPolicy(Qt::StrongFocus);
 
     timer=new QTimer(this);
@@ -41,6 +42,10 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
     painter.setBrush(Qt::red);
     painter.drawRect(x,560,40,40);
 
+    QString punkte=QString::number(score);
+
+    painter.drawText(10, 10,"Score: " + punkte);
+
 
     if(blocks.size()>1){
 
@@ -53,7 +58,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             if(pos==blocks.end())break;
             (*pos)->posY+=(*pos)->speed;
             painter.setBrush((*pos)->color);
-            painter.drawRect((*pos)->posX,(*pos)->posY,25,25);
+            painter.drawRect((*pos)->posX,(*pos)->posY,(*pos)->width,(*pos)->height);
 
         }
     }
@@ -61,7 +66,10 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
     //painter.drawRect(100,y,30,30);
 
     if(startgame){
+
+        score++;
         phase=rand() % 4;
+
         switch(phase)
         {
         case 0:
@@ -70,8 +78,10 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             block = new struct blockinfo;
             block->posX=rand() % 800 + 20;
             block->posY=0;
-            block->speed=rand() % 30 + 10;
+            block->speed=rand() % 20 + 10;
             block->color=Qt::white;
+            block->width=25;
+            block->height=25;
             blocks.push_back(block);
         }
             //if(blocks.size()>20)phase++;
@@ -84,8 +94,10 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             block = new struct blockinfo;
             block->posX=rand() % 800 + 20;
             block->posY=0;
-            block->speed=rand() % 30 + 10;
+            block->speed=rand() % 25 + 15;
             block->color=Qt::blue;
+            block->width=30;
+            block->height=30;
             blocks.push_back(block);
         }
 
@@ -97,8 +109,10 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             block = new struct blockinfo;
             block->posX=rand() % 800 + 20;
             block->posY=0;
-            block->speed=rand() % 30 + 10;
+            block->speed=rand() % 35 + 20;
             block->color=Qt::black;
+            block->width=50;
+            block->height=50;
             blocks.push_back(block);
         }
 
@@ -110,8 +124,10 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             block = new struct blockinfo;
             block->posX=rand() % 800 + 20;
             block->posY=0;
-            block->speed=rand() % 30 + 10;
+            block->speed=rand() % 40 + 30;
             block->color=Qt::yellow;
+            block->width=10;
+            block->height=10;
             blocks.push_back(block);
         }
 
@@ -174,7 +190,7 @@ void zeichenFeld::serialize(QFile &file)
         out  << "p "
              << (*pos)->color.red() << " " << (*pos)->color.green() << " "
              << (*pos)->color.blue()<< " "<< (*pos)->posX   << " "
-             << (*pos)->posY << " " << (*pos)->speed << " " << x<< endl;
+             << (*pos)->posY << " " << (*pos)->speed << " " <<(*pos)->width <<" " <<(*pos)->height << " " << x << " " << score  <<endl;
     }
 }
 
@@ -217,7 +233,10 @@ void zeichenFeld::deserialize(QFile &file)
         in >> point->posX;
         in >> point->posY;
         in >> point->speed;
+        in >> point->width;
+        in >> point->height;
         in >> x;
+        in >> score;
 
         in >> c; // Leerstellen werden vom '>>' Operator 'konmsumiert';
         // Zeilenenden nicht.
