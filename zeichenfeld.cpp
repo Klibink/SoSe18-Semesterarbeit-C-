@@ -14,11 +14,12 @@ zeichenFeld::zeichenFeld(QWidget *parent)
     setAutoFillBackground(true);
     //setMaximumSize(1024,768);
     setFixedSize(800,600);
-    x=300;
+    x=380;
     y=100;
     startgame=0;
     phase=0;
     score=0;
+    leben=3;
     setFocusPolicy(Qt::StrongFocus);
 
     timer=new QTimer(this);
@@ -35,24 +36,62 @@ zeichenFeld::~zeichenFeld()
 void zeichenFeld::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
-    vector<struct blockinfo *>::iterator pos,start;
+    vector<struct blockinfo *>::iterator pos;
 
     painter.begin( this );
 
-    painter.setBrush(Qt::red);
+    painter.setBrush(Qt::white);
     painter.drawRect(x,560,40,40);
 
     QString punkte=QString::number(score);
 
     painter.drawText(10, 10,"Score: " + punkte);
 
+    if(leben>=3){
+
+        painter.setBrush(Qt::red);
+        painter.drawEllipse(650,10,25,25);
+        painter.drawEllipse(700,10,25,25);
+        painter.drawEllipse(750,10,25,25);
+    }
+
+    else if(leben==2){
+
+        painter.setBrush(Qt::red);
+        painter.drawEllipse(650,10,25,25);
+        painter.drawEllipse(700,10,25,25);
+        painter.setBrush(Qt::NoBrush);
+        painter.drawEllipse(750,10,25,25);
+    }
+
+    else if(leben==1){
+
+        painter.setBrush(Qt::red);
+        painter.drawEllipse(650,10,25,25);
+        painter.setBrush(Qt::NoBrush);
+        painter.drawEllipse(700,10,25,25);
+        painter.drawEllipse(750,10,25,25);
+    }
+
+    else if(leben<=0){
+
+        stop();
+
+        blocks.clear();
+
+        score=0;
+        leben=3;
+        x=380;
+
+        start();
+}
 
     if(blocks.size()>1){
 
         pos=blocks.begin();
         for(;;){
 
-            start=pos;
+            //start=pos;
             pos++;
 
             if(pos==blocks.end())break;
@@ -60,15 +99,40 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             painter.setBrush((*pos)->color);
             painter.drawRect((*pos)->posX,(*pos)->posY,(*pos)->width,(*pos)->height);
 
+            //if((*pos)->posY>610) blocks.erase(pos);
+
+            if(((*pos)->posX+(*pos)->width)>=x && (*pos)->posX <=(x+40) && ((*pos)->posY+40)>=560 && (*pos)->posY<=(560+40)){
+
+                if((*pos)->typ=="freund")
+                {
+                    if(leben<=2)
+                    {
+                    leben++;
+                    blocks.erase(pos);
+                    }
+                    else blocks.erase(pos);
+                }
+
+                else
+                {
+                blocks.erase(pos);
+                leben--;
+                timer->stop();
+
+                start();
+                }
+            }
+
         }
     }
 
     //painter.drawRect(100,y,30,30);
 
+
     if(startgame){
 
         score++;
-        phase=rand() % 4;
+        phase=rand() % 5;
 
         switch(phase)
         {
@@ -79,9 +143,10 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             block->posX=rand() % 800 + 20;
             block->posY=0;
             block->speed=rand() % 20 + 10;
-            block->color=Qt::white;
+            block->color=Qt::red;
             block->width=25;
             block->height=25;
+            block->typ="gegner";
             blocks.push_back(block);
         }
             //if(blocks.size()>20)phase++;
@@ -98,6 +163,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             block->color=Qt::blue;
             block->width=30;
             block->height=30;
+            block->typ="gegner";
             blocks.push_back(block);
         }
 
@@ -113,6 +179,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             block->color=Qt::black;
             block->width=50;
             block->height=50;
+            block->typ="gegner";
             blocks.push_back(block);
         }
 
@@ -128,6 +195,23 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             block->color=Qt::yellow;
             block->width=10;
             block->height=10;
+            block->typ="gegner";
+            blocks.push_back(block);
+        }
+
+            break;
+
+        case 4:
+            if(rand()% 100 + 1 <3){
+            struct blockinfo *block;
+            block = new struct blockinfo;
+            block->posX=rand() % 800 + 20;
+            block->posY=0;
+            block->speed=10;
+            block->color=Qt::green;
+            block->width=30;
+            block->height=15;
+            block->typ="freund";
             blocks.push_back(block);
         }
 
@@ -172,7 +256,7 @@ void zeichenFeld::keyPressEvent( QKeyEvent *event)
 
     }
 
-    update();
+    //update();
 
 }
 
@@ -189,8 +273,8 @@ void zeichenFeld::serialize(QFile &file)
     {
         out  << "p "
              << (*pos)->color.red() << " " << (*pos)->color.green() << " "
-             << (*pos)->color.blue()<< " "<< (*pos)->posX   << " "
-             << (*pos)->posY << " " << (*pos)->speed << " " <<(*pos)->width <<" " <<(*pos)->height << " " << x << " " << score  <<endl;
+             << (*pos)->color.blue()<< " " << (*pos)->posX   << " "
+             << (*pos)->posY << " " << (*pos)->speed << " " <<(*pos)->width << " " <<(*pos)->height << " " << (*pos)->typ << " " << x << " " << score << " " << leben << endl;
     }
 }
 
@@ -198,7 +282,7 @@ void zeichenFeld::deserialize(QFile &file)
 {
     struct blockinfo *point;
     char c;
-    QString test;
+    QString test,typ;
     int red, green, blue, posX, posY, speed;
 
     QTextStream in(&file);
@@ -235,8 +319,10 @@ void zeichenFeld::deserialize(QFile &file)
         in >> point->speed;
         in >> point->width;
         in >> point->height;
+        in >> point->typ;
         in >> x;
         in >> score;
+        in >> leben;
 
         in >> c; // Leerstellen werden vom '>>' Operator 'konmsumiert';
         // Zeilenenden nicht.

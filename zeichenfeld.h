@@ -14,6 +14,8 @@ struct blockinfo{
 
     int width;
     int height;
+
+    QString typ;
 };
 
 class zeichenFeld : public QWidget
@@ -23,7 +25,7 @@ public:
     zeichenFeld(QWidget *parent = 0);
     ~zeichenFeld();
 
-    void start(void) { timer->start(500); startgame=1; };
+    void start(void) { timer->start(100); startgame=1; };
     void stop(void) { timer->stop(); startgame=0; };
 
     void serialize(QFile &file);
@@ -39,6 +41,7 @@ private:
     int startgame;
     int phase;
     int score;
+    int leben;
 
 protected:
     void paintEvent(QPaintEvent *event);
