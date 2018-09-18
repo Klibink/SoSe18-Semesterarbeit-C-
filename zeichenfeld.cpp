@@ -97,9 +97,15 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             if(pos==blocks.end())break;
             (*pos)->posY+=(*pos)->speed;
             painter.setBrush((*pos)->color);
-            painter.drawRect((*pos)->posX,(*pos)->posY,(*pos)->width,(*pos)->height);
 
-            //if((*pos)->posY>610) blocks.erase(pos);
+            if((*pos)->typ=="gegner")
+            {
+                painter.drawRect((*pos)->posX,(*pos)->posY,(*pos)->width,(*pos)->height);
+            }
+            else painter.drawEllipse((*pos)->posX,(*pos)->posY,(*pos)->width,(*pos)->height);
+
+
+            if((*pos)->posY>610) blocks.erase(pos);
 
             if(((*pos)->posX+(*pos)->width)>=x && (*pos)->posX <=(x+40) && ((*pos)->posY+40)>=560 && (*pos)->posY<=(560+40)){
 
@@ -142,7 +148,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             block = new struct blockinfo;
             block->posX=rand() % 800 + 20;
             block->posY=0;
-            block->speed=rand() % 20 + 10;
+            block->speed=15;
             block->color=Qt::red;
             block->width=25;
             block->height=25;
@@ -159,7 +165,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             block = new struct blockinfo;
             block->posX=rand() % 800 + 20;
             block->posY=0;
-            block->speed=rand() % 25 + 15;
+            block->speed=20;
             block->color=Qt::blue;
             block->width=30;
             block->height=30;
@@ -175,7 +181,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             block = new struct blockinfo;
             block->posX=rand() % 800 + 20;
             block->posY=0;
-            block->speed=rand() % 35 + 20;
+            block->speed=25;
             block->color=Qt::black;
             block->width=50;
             block->height=50;
@@ -191,7 +197,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             block = new struct blockinfo;
             block->posX=rand() % 800 + 20;
             block->posY=0;
-            block->speed=rand() % 40 + 30;
+            block->speed=35;
             block->color=Qt::yellow;
             block->width=10;
             block->height=10;
@@ -209,7 +215,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             block->posY=0;
             block->speed=10;
             block->color=Qt::green;
-            block->width=30;
+            block->width=15;
             block->height=15;
             block->typ="freund";
             blocks.push_back(block);
@@ -282,8 +288,8 @@ void zeichenFeld::deserialize(QFile &file)
 {
     struct blockinfo *point;
     char c;
-    QString test,typ;
-    int red, green, blue, posX, posY, speed;
+    QString test;
+    int red, green, blue;
 
     QTextStream in(&file);
 
