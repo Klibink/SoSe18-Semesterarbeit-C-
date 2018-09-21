@@ -5,8 +5,9 @@
 #include <QMessageBox>
 #include "zeichenfeld.h"
 
-#include <stdlib.h>
+#include <stdlib.h> //benötigt für rand();
 
+//Konstructor
 zeichenFeld::zeichenFeld(QWidget *parent)
     : QWidget(parent)
 {
@@ -20,12 +21,14 @@ zeichenFeld::zeichenFeld(QWidget *parent)
     phase=0;
     score=0;
     leben=3;
+    //setzt das Zeichenfeld in den Fokus; benötigt, damit Key-Press Event funktioniert
     setFocusPolicy(Qt::StrongFocus);
 
     timer=new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
 }
 
+//Destructor
 zeichenFeld::~zeichenFeld()
 {
     for (vector<struct blockinfo *>::iterator pos=blocks.begin();pos!=blocks.end();pos++)
@@ -37,16 +40,32 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
     vector<struct blockinfo *>::iterator pos;
+    int lastscore;
 
     painter.begin( this );
 
-    painter.setBrush(Qt::white);
+    //Avatar wird gezeichnet
+    painter.setBrush(Qt::BDiagPattern);
     painter.drawRect(x,560,40,40);
 
+    //Score wird gezeichnet
     QString punkte=QString::number(score);
-
     painter.drawText(10, 10,"Score: " + punkte);
 
+    //Wenn der Spieler alle Leben verliert wird Pause auf 20 gesetzt
+    // Erzeugung von "Freeze-Effekt" und Ausgabe des "Game-Over-Screen" mit den erreichten Punkten
+    if(gameover>0){
+        gameover--;
+        QFont font=painter.font();
+        font.setPointSize(20);
+        painter.setFont(font);
+        QString punkte2=QString::number(lastscore);
+        painter.drawText(200,300,"Game Over! Du hast " + punkte2 + " Punkte erreicht!");
+
+    }
+    else {
+
+    // Zuständig für die Lebensanzeige
     if(leben>=3){
 
         painter.setBrush(Qt::red);
@@ -73,76 +92,100 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
         painter.drawEllipse(750,10,25,25);
     }
 
+    // Wenn Spieler 0 Leben übrig hat wird der Vektor geleert(gelöscht) und die Variablen wieder auf den Ursprungszustand gesetzt
     else if(leben<=0){
-
-        stop();
 
         blocks.clear();
 
-        score=0;
         leben=3;
         x=380;
 
-        start();
-}
+        // Zwischenvariable lastscore wird benötigt, damit der Score am Ende des Spiels nicht 0 anzeigt
+        lastscore=score;
+        score=0;
 
-    if(blocks.size()>1){
+        // Pause wird auf 20 gesetzt, da der Timer alle 100ms aktualisiert wird, wird das Spiel 2 Sekunden lang "gefreezet"
+        gameover=20;
+        pause=0;
+
+}
+    // hier werden die fallenden Blöcke gezeichnet, falls der Vektor Inhalt hat
+    if(blocks.size()>1)
+    {
 
         pos=blocks.begin();
-        for(;;){
+        for(;;)
+        {
 
-            //start=pos;
             pos++;
 
+            //Schleifenendbedingung
             if(pos==blocks.end())break;
-            (*pos)->posY+=(*pos)->speed;
+            //Zuständig für das "Bewegen" der Blöcke, indem die Y-Position um die gespeicherte Geschwindigkeit der Blöcke verändert wird
+            if(pause==0) (*pos)->posY+=(*pos)->speed;
+            else pause--;
+            // Setze den Painter auf die gewünschte Füllfarbe
             painter.setBrush((*pos)->color);
 
+            //Prüfung, um welchen Blocktyp es sich handelt
+            //Typ Gegner zieht Leben ab
+            //Typ Freund(else) fügt Leben hinzu
             if((*pos)->typ=="gegner")
             {
                 painter.drawRect((*pos)->posX,(*pos)->posY,(*pos)->width,(*pos)->height);
             }
             else painter.drawEllipse((*pos)->posX,(*pos)->posY,(*pos)->width,(*pos)->height);
 
+            //Zuständig für das Löschen der Blöcke die Spielfläche verlassen
+           // if((*pos)->posY>610) blocks.erase(pos);
 
-            if((*pos)->posY>610) blocks.erase(pos);
+            //Zuständig für das Überprüfen ob Kollision zwischen Avatar und Blöcken vorhanden ist
+            if(((*pos)->posX+(*pos)->width)>=x && (*pos)->posX <=(x+40) && ((*pos)->posY+40)>=560 && (*pos)->posY<=(560+40))
+            {
 
-            if(((*pos)->posX+(*pos)->width)>=x && (*pos)->posX <=(x+40) && ((*pos)->posY+40)>=560 && (*pos)->posY<=(560+40)){
-
+                //Überprüft, ob es sich beim kollidierten Objekt um einen Freund oder einen Gegner handelt
                 if((*pos)->typ=="freund")
                 {
+                    //verhindert, dass die Variable "Score" größer als 3 werden kann
                     if(leben<=2)
                     {
+                    //Leben wird erhöht und das mit dem Avatar kollidierte Objekt gelöscht
                     leben++;
                     blocks.erase(pos);
+
+                    pause=100;
                     }
                     else blocks.erase(pos);
                 }
 
                 else
                 {
+                //Leben wird verringert und das mit dem Avatar kollidierte Objekt gelöscht
                 blocks.erase(pos);
                 leben--;
-                timer->stop();
 
-                start();
+                pause=100;
+
+
                 }
             }
-
         }
     }
 
-    //painter.drawRect(100,y,30,30);
-
-
+    //wird ausgelöst, wenn Spieler Startknopf auslöst
     if(startgame){
 
+        //score wird erhöht, solange das Spiel läuft
         score++;
-        phase=rand() % 5;
+
+        //Variable Phase ist eine zufällige Zahl zwischen 0 und 5
+        //abhängig von Phase werden verschiedene Blocktypen generiert und an das Ende des Vektors gepusht
+        phase=rand() % 6;
 
         switch(phase)
         {
         case 0:
+            //if-Bedingung sorgt für unvorhersehbareren Spielablauf, da nicht alle 100ms ein Block generiert wird
             if(rand()% 100 + 1 <33){
             struct blockinfo *block;
             block = new struct blockinfo;
@@ -155,11 +198,11 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             block->typ="gegner";
             blocks.push_back(block);
         }
-            //if(blocks.size()>20)phase++;
 
             break;
 
         case 1:
+            //if-Bedingung sorgt für unvorhersehbareren Spielablauf, da nicht alle 100ms ein Block generiert wird
             if(rand()% 100 + 1 <33){
             struct blockinfo *block;
             block = new struct blockinfo;
@@ -176,6 +219,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             break;
 
         case 2:
+            //if-Bedingung sorgt für unvorhersehbareren Spielablauf, da nicht alle 100ms ein Block generiert wird
             if(rand()% 100 + 1 <33){
             struct blockinfo *block;
             block = new struct blockinfo;
@@ -192,6 +236,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             break;
 
         case 3:
+            //if-Bedingung sorgt für unvorhersehbareren Spielablauf, da nicht alle 100ms ein Block generiert wird
             if(rand()% 100 + 1 <33){
             struct blockinfo *block;
             block = new struct blockinfo;
@@ -208,6 +253,24 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             break;
 
         case 4:
+            //if-Bedingung sorgt für unvorhersehbareren Spielablauf, da nicht alle 100ms ein Block generiert wird
+            if(rand()% 100 + 1 <33){
+            struct blockinfo *block;
+            block = new struct blockinfo;
+            block->posX=rand() % 800 + 20;
+            block->posY=0;
+            block->speed=45;
+            block->color=Qt::cyan;
+            block->width=10;
+            block->height=30;
+            block->typ="gegner";
+            blocks.push_back(block);
+        }
+
+            break;
+
+        case 5:
+            //if-Bedingung sorgt für unvorhersehbareren Spielablauf, da nicht alle 100ms ein Block generiert wird; Chance viel geringer als bei anderen Objekten
             if(rand()% 100 + 1 <3){
             struct blockinfo *block;
             block = new struct blockinfo;
@@ -228,6 +291,8 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
 
     painter.end();
 
+    }
+
 }
 
 void zeichenFeld::mousePressEvent( QMouseEvent* event)
@@ -244,6 +309,7 @@ void zeichenFeld::mousePressEvent( QMouseEvent* event)
     update();
 }
 
+//Zuständig für das Verarbeiten von Befehlen die durch die Tastatur ausgelöst werden
 void zeichenFeld::keyPressEvent( QKeyEvent *event)
 {
 
@@ -253,20 +319,16 @@ void zeichenFeld::keyPressEvent( QKeyEvent *event)
         if(x>0)x=x-25;
 
         break;
-        //update();
 
     case Qt::Key_Right:
         if(x+40<800)x=x+25;
         break;
-        //update();
 
     }
 
-    //update();
-
 }
 
-
+//Funktion, die für das Speichern zuständig ist
 void zeichenFeld::serialize(QFile &file)
 {
     vector<struct blockinfo *>::iterator pos;
@@ -284,9 +346,10 @@ void zeichenFeld::serialize(QFile &file)
     }
 }
 
+//Funktion, die für das Laden zuständig ist
 void zeichenFeld::deserialize(QFile &file)
 {
-    struct blockinfo *point;
+    struct blockinfo *bloecke;
     char c;
     QString test;
     int red, green, blue;
@@ -315,17 +378,16 @@ void zeichenFeld::deserialize(QFile &file)
                                  tr("Folgender Objekttyp ist unbekannt: ") + c,QMessageBox::Ok);
             return;
         }
-        point=new struct blockinfo;
 
-        //in >> posX >> posY >> speed;
+        bloecke=new struct blockinfo;
         in >> red >> green >> blue;
-        point->color.setRgb(red,green,blue);
-        in >> point->posX;
-        in >> point->posY;
-        in >> point->speed;
-        in >> point->width;
-        in >> point->height;
-        in >> point->typ;
+        bloecke->color.setRgb(red,green,blue);
+        in >> bloecke->posX;
+        in >> bloecke->posY;
+        in >> bloecke->speed;
+        in >> bloecke->width;
+        in >> bloecke->height;
+        in >> bloecke->typ;
         in >> x;
         in >> score;
         in >> leben;
@@ -333,7 +395,7 @@ void zeichenFeld::deserialize(QFile &file)
         in >> c; // Leerstellen werden vom '>>' Operator 'konmsumiert';
         // Zeilenenden nicht.
 
-        blocks.push_back(point);
+        blocks.push_back(bloecke);
     }
 
     update();
