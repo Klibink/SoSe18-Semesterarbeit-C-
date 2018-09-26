@@ -1,4 +1,4 @@
-# SoSe18-Semesterarbeit-C-
+# SoSe18-Semesterarbeit-C++-
 
 Erstellt für das Seminar C++ Programmieren - 2 im SoSe 18 bei Herrn Professor Eide, Oyvind
 
