@@ -5,13 +5,13 @@
 #include <QMessageBox>
 #include "zeichenfeld.h"
 
-#include <stdlib.h> //benötigt für rand();
+#include <stdlib.h> //benötigt für rand() -> generiert zufällige Dezimalzahl, verwendet damit Blöcke an zufälligen Stellen(X-Koordinaten) "spawnen"
 
 //Konstructor
 zeichenFeld::zeichenFeld(QWidget *parent)
     : QWidget(parent)
 {
-    setPalette(QPalette(QColor(250, 250, 200)));
+    setPalette(QPalette(QColor(218, 112, 214)));
     setAutoFillBackground(true);
     //setMaximumSize(1024,768);
     setFixedSize(800,600);
@@ -35,7 +35,7 @@ zeichenFeld::~zeichenFeld()
         delete *pos;
 }
 
-
+//Paintevent
 void zeichenFeld::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
@@ -124,7 +124,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             //Zuständig für das "Bewegen" der Blöcke, indem die Y-Position um die gespeicherte Geschwindigkeit der Blöcke verändert wird
             if(pause==0) (*pos)->posY+=(*pos)->speed;
             else pause--;
-            // Setze den Painter auf die gewünschte Füllfarbe
+            // Setzt den Painter auf die gewünschte Füllfarbe
             painter.setBrush((*pos)->color);
 
             //Prüfung, um welchen Blocktyp es sich handelt
@@ -136,8 +136,8 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
             }
             else painter.drawEllipse((*pos)->posX,(*pos)->posY,(*pos)->width,(*pos)->height);
 
-            //Zuständig für das Löschen der Blöcke die Spielfläche verlassen
-           // if((*pos)->posY>610) blocks.erase(pos);
+            //Zuständig für das Löschen der Blöcke die Spielfläche verlassen (auskommentiert, da Spielablauf unflüssiger wird und das Programm abstürzt, sobald der Score 612 beträgt)
+            /* if((*pos)->posY>600) blocks.erase(pos); */
 
             //Zuständig für das Überprüfen ob Kollision zwischen Avatar und Blöcken vorhanden ist
             if(((*pos)->posX+(*pos)->width)>=x && (*pos)->posX <=(x+40) && ((*pos)->posY+40)>=560 && (*pos)->posY<=(560+40))
@@ -152,7 +152,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
                     //Leben wird erhöht und das mit dem Avatar kollidierte Objekt gelöscht
                     leben++;
                     blocks.erase(pos);
-
+                    //erzeugt "Freeze-Effekt"
                     pause=100;
                     }
                     else blocks.erase(pos);
@@ -163,7 +163,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
                 //Leben wird verringert und das mit dem Avatar kollidierte Objekt gelöscht
                 blocks.erase(pos);
                 leben--;
-
+                //erzeugt "Freeze-Effekt"
                 pause=100;
 
 
@@ -271,6 +271,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
 
         case 5:
             //if-Bedingung sorgt für unvorhersehbareren Spielablauf, da nicht alle 100ms ein Block generiert wird; Chance viel geringer als bei anderen Objekten
+            //Block der Leben gibt
             if(rand()% 100 + 1 <3){
             struct blockinfo *block;
             block = new struct blockinfo;
@@ -295,6 +296,7 @@ void zeichenFeld::paintEvent(QPaintEvent *event)
 
 }
 
+//Avatar lässt sich auch durch Maustasten bewegen
 void zeichenFeld::mousePressEvent( QMouseEvent* event)
 {
 
@@ -316,11 +318,13 @@ void zeichenFeld::keyPressEvent( QKeyEvent *event)
     switch(event->key())
     {
     case Qt::Key_Left:
+        //if-Bedingung verhindert, dass Spieler Spielfläche verlassen kann
         if(x>0)x=x-25;
 
         break;
 
     case Qt::Key_Right:
+        //if-Bedingung verhindert, dass Spieler Spielfläche verlassen kann
         if(x+40<800)x=x+25;
         break;
 

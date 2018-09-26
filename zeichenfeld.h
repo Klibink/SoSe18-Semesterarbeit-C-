@@ -4,7 +4,7 @@
 #include <vector>
 using namespace std;
 
-#include <QtGui> //<-- neu
+#include <QtGui>
 
 //beinhaltet alle benötigten Variablen der fallenden Blöcke
 struct blockinfo{
@@ -26,10 +26,14 @@ public:
     zeichenFeld(QWidget *parent = 0);
     ~zeichenFeld();
 
+    //startet das Spiel
     void start(void) { timer->start(100); startgame=1; };
+    //beendet/stoppt das Spiel
     void stop(void) { timer->stop(); startgame=0; };
 
+    //speichert den Spielzustand
     void serialize(QFile &file);
+    //lädt das Spiel aus Savedatei
     void deserialize(QFile &file);
 
 //Avatar und Spielfeld
