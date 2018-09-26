@@ -2,7 +2,7 @@
 
 Erstellt für das Seminar C++ Programmieren - 2 im SoSe 18 bei Herrn Professor Eide, Oyvind
 
-Repository zu finden unter: 
+Repository zu finden unter: https://github.com/Klibink/SoSe18-Semesterarbeit-C-Julian-Klink
 
 Ziel des Aufgabenteils ist die Programmierung und Gestaltung eines graphischen Spiels unter Verwendung von C++ und QT. 
 
