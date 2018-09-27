@@ -21,6 +21,8 @@ zeichenFeld::zeichenFeld(QWidget *parent)
     phase=0;
     score=0;
     leben=3;
+    pause=0;
+    gameover=0;
     //setzt das Zeichenfeld in den Fokus; benötigt, damit Key-Press Event funktioniert
     setFocusPolicy(Qt::StrongFocus);
 
